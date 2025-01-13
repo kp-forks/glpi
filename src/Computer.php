@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -609,6 +609,36 @@ class Computer extends CommonDBTM
         $tab = array_merge($tab, Agent::rawSearchOptionsToAdd());
 
         $tab = array_merge($tab, DCRoom::rawSearchOptionsToAdd());
+
+        return $tab;
+    }
+
+    public static function rawSearchOptionsToAdd($itemtype)
+    {
+        $tab = [];
+
+        $tab[] = [
+            'id'                 => 'Computer',
+            'name'               => __('Computers')
+        ];
+
+        $tab[] = [
+            'id'                 => '5',
+            'table'              => Computer::getTable(),
+            'field'              => 'uuid',
+            'name'               => __('Computer UUID'),
+            'datatype'           => 'string',
+            'massiveaction'      => false,
+            'forcegroupby'       => true,
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => ComputerVirtualMachine::getTable(),
+                    'joinparams'         => [
+                        'jointype'           => 'child',
+                    ]
+                ]
+            ]
+        ];
 
         return $tab;
     }

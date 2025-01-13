@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -225,7 +225,7 @@ class DropdownTranslation extends CommonDBChild
     /**
      * Return the number of translations for an item
      *
-     * @param CommonDBTM item
+     * @param CommonDBTM $item
      *
      * @return integer the number of translations for this item
      **/
@@ -587,7 +587,10 @@ JAVASCRIPT
         echo "<td>" . __('Value') . "</td>";
         echo "<td>";
         echo "<span id='span_value'>";
-        if ($ID > 0) {
+        if (
+            ($ID > 0)
+            && ($item instanceof CommonDropdown)
+        ) {
             $matching_field = $item->getAdditionalField($this->fields['field']);
             if (($matching_field['type'] ?? null) === 'tinymce') {
                 Html::textarea([

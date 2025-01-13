@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -199,7 +199,7 @@ class ProfileRight extends CommonDBChild
 
         $profiles = [];
         $ok       = true;
-        foreach ($DB->request('glpi_profilerights', $condition) as $data) {
+        foreach ($DB->request(self::getTable(), $condition) as $data) {
             $profiles[] = $data['profiles_id'];
         }
         if (count($profiles)) {

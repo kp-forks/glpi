@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -796,5 +796,69 @@ class Session extends \DbTestCase
          ->withType(E_USER_WARNING)
          ->withMessage('Unexpected value `null` found in `$_SESSION[\'glpiactiveentities\']`.')
          ->exists();
+    }
+
+    public function testShouldReloadActiveEntities(): void
+    {
+        $this->login('glpi', 'glpi');
+
+        $ent0 = getItemByTypeName('Entity', '_test_root_entity', true);
+        $ent1 = getItemByTypeName('Entity', '_test_child_1', true);
+        $ent2 = getItemByTypeName('Entity', '_test_child_2', true);
+
+        // Create a new entity
+        $entity_id = $this->createItem(\Entity::class, [
+            'name'        => __METHOD__,
+            'entities_id' => $ent1
+        ])->getID();
+
+        $this->boolean(\Session::changeActiveEntities($ent1, true))->isTrue();
+
+        // The entity goes out of scope -> reloaded TRUE
+        $this->updateItem(\Entity::class, $entity_id, [
+            'entities_id' => $ent0
+        ]);
+        $this->boolean(\Session::shouldReloadActiveEntities())->isTrue();
+
+        $this->boolean(\Session::changeActiveEntities($ent2, true))->isTrue();
+
+        // The entity enters the scope -> reloaded TRUE
+        $this->updateItem(\Entity::class, $entity_id, [
+            'entities_id' => $ent2
+        ]);
+        $this->boolean(\Session::shouldReloadActiveEntities())->isTrue();
+
+        $this->boolean(\Session::changeActiveEntities($ent1, true))->isTrue();
+
+        // The entity remains out of scope -> reloaded FALSE
+        $this->updateItem(\Entity::class, $entity_id, [
+            'entities_id' => $ent0
+        ]);
+        $this->boolean(\Session::shouldReloadActiveEntities())->isFalse();
+
+        $this->boolean(\Session::changeActiveEntities($ent1, false))->isTrue();
+
+        // The entity remains out of scope -> reloaded FALSE
+        $this->updateItem(\Entity::class, $entity_id, [
+            'entities_id' => $ent1
+        ]);
+        $this->boolean(\Session::shouldReloadActiveEntities())->isFalse();
+
+        // See all entities -> reloaded FALSE
+        $this->boolean(\Session::changeActiveEntities('all'))->isTrue();
+
+        $this->updateItem(\Entity::class, $entity_id, [
+            'entities_id' => $ent2
+        ]);
+
+        $this->boolean(\Session::shouldReloadActiveEntities())->isFalse();
+    }
+
+    public function testActiveEntityNameForFullStructure(): void
+    {
+        $this->login();
+        \Session::changeActiveEntities("all");
+        $this->string($_SESSION["glpiactive_entity_name"])->isEqualTo("Root entity (full structure)");
+        $this->string($_SESSION["glpiactive_entity_shortname"])->isEqualTo("Root entity (full structure)");
     }
 }

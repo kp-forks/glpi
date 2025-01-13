@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -196,8 +196,8 @@ class FieldUnicity extends CommonDropdown
     /**
      * Return criteria unicity for an itemtype, in an entity
      *
-     * @param string  itemtype       the itemtype for which unicity must be checked
-     * @param integer entities_id    the entity for which configuration must be retrivied
+     * @param string  $itemtype       the itemtype for which unicity must be checked
+     * @param integer $entities_id    the entity for which configuration must be retrivied
      * @param boolean $check_active
      *
      * @return array an array of fields to check, or an empty array if no

@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -142,7 +142,7 @@ class ErrorHandler
     /**
      * @param LoggerInterface|null $logger
      */
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct(?LoggerInterface $logger = null)
     {
         $this->logger = $logger;
     }
@@ -225,8 +225,10 @@ class ErrorHandler
     public function register(): void
     {
         set_error_handler([$this, 'handleError']);
-        set_exception_handler([$this, 'handleException']);
-        register_shutdown_function([$this, 'handleFatalError']);
+        if (!defined('TU_USER')) {
+            set_exception_handler([$this, 'handleException']);
+            register_shutdown_function([$this, 'handleFatalError']);
+        }
         $this->reserved_memory = str_repeat('x', 50 * 1024); // reserve 50 kB of memory space
     }
 

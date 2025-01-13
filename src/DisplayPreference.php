@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -484,8 +484,8 @@ class DisplayPreference extends CommonDBTM
      * starting from the position before the item which we want to get the group name.
      * The first key of string type we encouter, is our item's group name.
      *
-     * @param array $searchopt
-     * @param int   $searchoptkey
+     * @param array $search_options
+     * @param int   $search_option_key
      *
      * @return string Return the name of the group or an empty string.
      *
@@ -783,6 +783,7 @@ class DisplayPreference extends CommonDBTM
                 return true;
 
             case __CLASS__:
+                /** @var DisplayPreference $item */
                 switch ($tabnum) {
                     case 1:
                         $item->showFormGlobal(Toolbox::cleanTarget($_GET['_target']), $_GET["displaytype"]);

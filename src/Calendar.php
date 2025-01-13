@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -143,7 +143,7 @@ class Calendar extends CommonDropdown
                                  || ($input['entities_id'] != $item->getEntityID())
                             ) {
                                 if ($item->can(-1, CREATE, $options)) {
-                                    if ($item->clone($options)) {
+                                    if (method_exists($item, 'clone') && $item->clone($options)) {
                                          $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);
                                     } else {
                                          $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_KO);

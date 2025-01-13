@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -543,7 +543,7 @@ HTML;
         $dark_bg_color = Toolbox::getFgColor($p['color'], 80);
         $dark_fg_color = Toolbox::getFgColor($p['color'], 40);
 
-        $chart_id = "chart-{$p['cache_key']}";
+        $chart_id = Toolbox::slugify("chart-{$p['cache_key']}");
 
         $class = "pie";
         $class .= $p['half'] ? " half" : "";
@@ -1038,7 +1038,7 @@ JAVASCRIPT;
 
         $animation_duration = self::$animation_duration;
 
-        $chart_id = 'chart_' . $p['cache_key'];
+        $chart_id = Toolbox::slugify('chart_' . $p['cache_key']);
 
         $class = "bar";
         $class .= $p['horizontal'] ? " horizontal" : "";
@@ -1484,7 +1484,7 @@ JAVASCRIPT;
         $json_labels = json_encode($labels);
         $json_series = json_encode($series);
 
-        $chart_id = 'chart_' . $p['cache_key'];
+        $chart_id = Toolbox::slugify('chart_' . $p['cache_key']);
 
         $fg_color        = Toolbox::getFgColor($p['color']);
         $line_color      = Toolbox::getFgColor($p['color'], 10);

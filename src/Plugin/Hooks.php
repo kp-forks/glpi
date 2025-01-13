@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -41,8 +41,16 @@ class Hooks
     const CSRF_COMPLIANT = 'csrf_compliant';
 
    // File hooks
-    const ADD_CSS        = 'add_css';
-    const ADD_JAVASCRIPT = 'add_javascript';
+    const ADD_CSS               = 'add_css';
+    const ADD_JAVASCRIPT        = 'add_javascript';
+    const ADD_JAVASCRIPT_MODULE = 'add_javascript_module';
+    const ADD_HEADER_TAG        = 'add_header_tag';
+
+    // File hooks for anonymous pages
+    const ADD_CSS_ANONYMOUS_PAGE               = 'add_css_anonymous_page';
+    const ADD_JAVASCRIPT_ANONYMOUS_PAGE        = 'add_javascript_anonymous_page';
+    const ADD_JAVASCRIPT_MODULE_ANONYMOUS_PAGE = 'add_javascript_module_anonymous_page';
+    const ADD_HEADER_TAG_ANONYMOUS_PAGE        = 'add_header_tag_anonymous_page';
 
    // Function hooks with no parameters
     const CHANGE_ENTITY               = 'change_entity';
@@ -59,6 +67,7 @@ class Hooks
     const VCARD_DATA            = 'vcard_data';
     const POST_PLUGIN_DISABLE   = 'post_plugin_disable';
     const POST_PLUGIN_CLEAN     = 'post_plugin_clean';
+    const POST_PLUGIN_INSTALL   = 'post_plugin_install';
     const POST_PLUGIN_UNINSTALL = 'post_plugin_uninstall';
     const POST_PLUGIN_ENABLE    = 'post_plugin_enable' ;
 
@@ -185,6 +194,7 @@ class Hooks
             self::UNDISCLOSED_CONFIG_VALUE,
             self::UNLOCK_FIELDS,
             self::VCARD_DATA,
+            self::ADD_HEADER_TAG
         ];
     }
 

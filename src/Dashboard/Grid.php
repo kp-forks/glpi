@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -953,7 +953,7 @@ HTML;
                             unset($array['url']);
                             foreach ($array as &$value) {
                                 if (is_array($value)) {
-                                    $unset_url($value, 'url');
+                                    $unset_url($value);
                                 }
                             }
                         };
@@ -998,7 +998,7 @@ HTML;
 
     /**
      * Return Html for a provided set of filters
-     * @param array $filter_names
+     * @param array $filters
      *
      * @return string the html
      */
@@ -1228,7 +1228,7 @@ HTML;
                         ]
                     ],
                     'cache'      => false,
-                    'filters'    => Filter::getAppliableFilters($itemtype::getTable()),
+                    'filters'    => Filter::getAppliableFilters(Ticket::getTable()),
                 ];
 
                 $cards["table_count_tickets_$case"] = [
@@ -1243,7 +1243,7 @@ HTML;
                             'validation_check_user' => true,
                         ]
                     ],
-                    'filters'    => Filter::getAppliableFilters($itemtype::getTable()),
+                    'filters'    => Filter::getAppliableFilters(Ticket::getTable()),
                 ];
             }
 
