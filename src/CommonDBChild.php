@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -248,7 +248,7 @@ abstract class CommonDBChild extends CommonDBConnexity
      * @param $getFromDB   (true by default)
      * @param $getEmpty    (true by default)
      *
-     * @return object of the concerned item or false on error
+     * @return CommonDBTM|false of the concerned item or false on error
      **/
     public function getItem($getFromDB = true, $getEmpty = true)
     {
@@ -997,7 +997,7 @@ abstract class CommonDBChild extends CommonDBConnexity
 
     final public static function getItemField($itemtype): string
     {
-        if (is_subclass_of($itemtype, 'Rule')) {
+        if (is_subclass_of($itemtype, 'Rule') && !is_subclass_of($itemtype, 'LevelAgreementLevel')) {
             $itemtype = 'Rule';
         }
 

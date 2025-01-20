@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -70,7 +70,7 @@ class Provider
     /**
      * Retrieve the number of element for a given item
      *
-     * @param CommonDBTM|null object to count
+     * @param CommonDBTM|null $item object to count
      *
      * @param array $params default values for
      * - 'apply_filters' values from dashboard filters
@@ -81,7 +81,7 @@ class Provider
      * - 'label'
      * - 'icon'
      */
-    public static function bigNumberItem(CommonDBTM $item = null, array $params = []): array
+    public static function bigNumberItem(?CommonDBTM $item = null, array $params = []): array
     {
         $DB = DBConnection::getReadConnection();
 
@@ -102,7 +102,7 @@ class Provider
         }
 
         if ($item instanceof User) {
-            $where += getEntitiesRestrictCriteria(Profile_User::getTable());
+            $where += getEntitiesRestrictCriteria(Profile_User::getTable(), '', '', true);
             $request = [
                 'SELECT' => ['COUNT DISTINCT' => $item::getTableField($item::getIndexName()) . ' as cpt'],
                 'FROM'   => $i_table,
@@ -118,7 +118,7 @@ class Provider
             ];
         } else {
             if ($item->isEntityAssign()) {
-                $where += getEntitiesRestrictCriteria($item::getTable());
+                $where += getEntitiesRestrictCriteria($item::getTable(), '', '', $item->maybeRecursive());
             }
             $request = [
                 'SELECT' => ['COUNT DISTINCT' => $item::getTableField($item::getIndexName()) . ' as cpt'],
@@ -155,8 +155,8 @@ class Provider
 
 
     /**
-     * @method self::bigNumberItem
-     * @method self::nbItemByFk
+     * @method array bigNumberItem(CommonDBTM $item, array $params = [])
+     * @method array nbItemByFk(CommonDBTM $item, array $params = [])
      */
     public static function __callStatic(string $name = "", array $arguments = [])
     {
@@ -324,6 +324,12 @@ class Provider
                         'field'      => 55,
                         'searchtype' => 'equals',
                         'value'      => CommonITILValidation::WAITING,
+                    ],
+                    [
+                        'link'       => 'AND NOT',
+                        'field'      => 12,
+                        'searchtype' => 'equals',
+                        'value'      => Ticket::CLOSED,
                     ]
                 ];
 
@@ -338,6 +344,7 @@ class Provider
 
                 $where = [
                     'glpi_ticketvalidations.status' => CommonITILValidation::WAITING,
+                    'NOT' => ['glpi_tickets.status' => Ticket::CLOSED],
                 ];
 
                 if ($params['validation_check_user']) {
@@ -772,8 +779,8 @@ class Provider
      * - 'icon'
      */
     public static function nbItemByFk(
-        CommonDBTM $item = null,
-        CommonDBTM $fk_item = null,
+        ?CommonDBTM $item = null,
+        ?CommonDBTM $fk_item = null,
         array $params = []
     ): array {
         $DB = DBConnection::getReadConnection();
@@ -891,7 +898,7 @@ class Provider
      *
      * @return array
      */
-    public static function articleListItem(CommonDBTM $item = null, array $params = []): array
+    public static function articleListItem(?CommonDBTM $item = null, array $params = []): array
     {
         $DB = DBConnection::getReadConnection();
 

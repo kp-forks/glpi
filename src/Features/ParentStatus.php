@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -137,7 +137,11 @@ trait ParentStatus
                 ) {
                     $needupdateparent = true;
                     // If begin date is defined, the status must be planned if it exists, rather than assigned.
-                    if (!empty($this->fields['begin']) && $parentitem->isStatusExists(CommonITILObject::PLANNED)) {
+                    if (
+                        ($this instanceof \CommonITILTask)
+                        && ($this->countPlannedTasks() > 0)
+                        && $parentitem->isStatusExists(CommonITILObject::PLANNED)
+                    ) {
                         $update['status'] = CommonITILObject::PLANNED;
                     } else {
                         $update['status'] = CommonITILObject::ASSIGNED;
@@ -166,11 +170,14 @@ trait ParentStatus
 
         if (
             !$is_set_pending
-            && !empty($this->fields['begin'])
+            && ($this instanceof \CommonITILTask)
+            && ($this->countPlannedTasks() > 0)
             && $parentitem->isStatusExists(CommonITILObject::PLANNED)
-            && (($parentitem->fields["status"] == CommonITILObject::INCOMING)
-              || ($parentitem->fields["status"] == CommonITILObject::ASSIGNED)
-              || $needupdateparent)
+            && (in_array($parentitem->fields["status"], [
+                CommonITILObject::INCOMING,
+                CommonITILObject::ASSIGNED,
+                CommonITILObject::PLANNED,
+            ]) || $needupdateparent)
         ) {
             $input['_status'] = CommonITILObject::PLANNED;
         }

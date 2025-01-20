@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -339,8 +339,8 @@ class NetworkPort_Vlan extends CommonDBRelation
 
         if (!$withtemplate) {
             $nb = 0;
-            switch ($item->getType()) {
-                case 'NetworkPort':
+            switch (get_class($item)) {
+                case NetworkPort::class:
                     if ($_SESSION['glpishow_count_on_tabs']) {
                         $nb = countElementsInTable(
                             $this->getTable(),
@@ -348,7 +348,7 @@ class NetworkPort_Vlan extends CommonDBRelation
                         );
                     }
                     return self::createTabEntry(Vlan::getTypeName(), $nb);
-                case 'Vlan':
+                case Vlan::class:
                     if ($_SESSION['glpishow_count_on_tabs']) {
                         $nb = countElementsInTable(
                             $this->getTable(),
@@ -365,10 +365,10 @@ class NetworkPort_Vlan extends CommonDBRelation
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
 
-        switch ($item->getType()) {
-            case 'NetworkPort':
+        switch (get_class($item)) {
+            case NetworkPort::class:
                 return self::showForNetworkPort($item);
-            case 'Vlan':
+            case Vlan::class:
                 return self::showForVlan($item);
         }
         return true;

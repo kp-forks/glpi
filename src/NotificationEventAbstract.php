@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -114,11 +114,12 @@ abstract class NotificationEventAbstract implements NotificationEventInterface
                                 isset($users_infos['additionnaloption']['timezone'])
                                 && is_a($options['item'], CommonDBTM::class, true) // item may be a `CommonGLPI`
                             ) {
-                                 $DB->setTimezone($users_infos['additionnaloption']['timezone']);
-                                 // reload object for get timezone correct dates
-                                 $options['item']->getFromDB($item->fields['id']);
+                                /** @var CommonDBTM $item */
+                                $DB->setTimezone($users_infos['additionnaloption']['timezone']);
+                                // reload object for get timezone correct dates
+                                $options['item']->getFromDB($item->fields['id']);
 
-                                 $DB->setTimezone($orig_tz);
+                                $DB->setTimezone($orig_tz);
                             }
 
                             if (

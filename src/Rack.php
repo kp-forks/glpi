@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -311,8 +311,8 @@ class Rack extends CommonDBTM
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
 
-        switch ($item->getType()) {
-            case DCRoom::getType():
+        switch (get_class($item)) {
+            case DCRoom::class:
                 $nb = 0;
                 if ($_SESSION['glpishow_count_on_tabs']) {
                     $nb = countElementsInTable(
@@ -466,8 +466,8 @@ class Rack extends CommonDBTM
             $coord = explode(',', $item['position']);
             if (is_array($coord) && count($coord) == 2) {
                 list($x, $y) = $coord;
-                $item['_x'] = $x - 1;
-                $item['_y'] = $y - 1;
+                $item['_x'] = (int)$x - 1;
+                $item['_y'] = (int)$y - 1;
             } else {
                 $item['_x'] = null;
                 $item['_y'] = null;
@@ -791,7 +791,8 @@ JAVASCRIPT;
     /**
      * Get already filled places
      *
-     * @param string $current Current position to exclude; defaults to null
+     * @param string $itemtype Item type
+     * @param int    $items_id Item ID
      *
      * @return array [x => [left => [depth, depth, depth, depth]], [right => [depth, depth, depth, depth]]]
      */

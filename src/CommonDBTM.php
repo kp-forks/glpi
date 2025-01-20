@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -36,6 +36,7 @@
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Event;
 use Glpi\Features\CacheableListInterface;
+use Glpi\Features\Clonable;
 use Glpi\Plugin\Hooks;
 use Glpi\RichText\RichText;
 use Glpi\RichText\UserMention;
@@ -303,7 +304,7 @@ class CommonDBTM extends CommonGLPI
         $iterator = $DB->request([
             'FROM'   => $this->getTable(),
             'WHERE'  => [
-                $this->getTable() . '.' . $this->getIndexName() => Toolbox::cleanInteger($ID)
+                $this->getTable() . '.' . static::getIndexName() => Toolbox::cleanInteger($ID)
             ],
             'LIMIT'  => 1
         ]);
@@ -356,10 +357,10 @@ class CommonDBTM extends CommonGLPI
         $item = new static();
 
         foreach ($iter as $row) {
-            if (!isset($row["id"])) {
+            if (!isset($row[static::getIndexName()])) {
                 continue;
             }
-            if ($item->getFromDB($row["id"])) {
+            if ($item->getFromDB($row[static::getIndexName()])) {
                 yield $item;
             }
         }
@@ -380,7 +381,7 @@ class CommonDBTM extends CommonGLPI
         /** @var \DBmysql $DB */
         global $DB;
 
-        $crit = ['SELECT' => 'id',
+        $crit = ['SELECT' => static::getIndexName(),
             'FROM'   => $this->getTable(),
             'WHERE'  => $crit
         ];
@@ -388,7 +389,7 @@ class CommonDBTM extends CommonGLPI
         $iter = $DB->request($crit);
         if (count($iter) == 1) {
             $row = $iter->current();
-            return $this->getFromDB($row['id']);
+            return $this->getFromDB($row[static::getIndexName()]);
         } else if (count($iter) > 1) {
             trigger_error(
                 sprintf(
@@ -698,7 +699,7 @@ class CommonDBTM extends CommonGLPI
 
         if (count($oldvalues) && $affected_rows > 0) {
             Log::constructHistory($this, $oldvalues, $this->fields);
-            $this->getFromDB($this->fields[$this->getIndexName()]);
+            $this->getFromDB($this->fields[static::getIndexName()]);
         }
 
         return ($affected_rows >= 0);
@@ -736,7 +737,7 @@ class CommonDBTM extends CommonGLPI
                     $this->fields['id'] = $DB->insertId();
                 }
 
-                $this->getFromDB($this->fields[$this->getIndexName()]);
+                $this->getFromDB($this->fields[static::getIndexName()]);
 
                 return $this->fields['id'];
             }
@@ -1046,6 +1047,12 @@ class CommonDBTM extends CommonGLPI
             $agent->deleteByCriteria(['itemtype' => $this->getType(), 'items_id' => $this->getID()]);
         }
 
+        if (in_array($this->getType(), $CFG_GLPI['databaseinstance_types'])) {
+            // DatabaseInstance does not extends CommonDBConnexity
+            $dbinstance = new DatabaseInstance();
+            $dbinstance->deleteByCriteria(['itemtype' => $this->getType(), 'items_id' => $this->getID()], true);
+        }
+
         if (in_array($this->getType(), $CFG_GLPI['itemdevices_types'])) {
             Item_Devices::cleanItemDeviceDBOnItemDelete(
                 $this->getType(),
@@ -1170,6 +1177,13 @@ class CommonDBTM extends CommonGLPI
         unset($_SESSION['saveInput'][$this->getType()]);
     }
 
+    /**
+     * @return bool true if input data is saved in the session
+     */
+    protected function hasSavedInput(): bool
+    {
+        return isset($_SESSION['saveInput'][static::class]);
+    }
 
     /**
      * Get the data saved in the session
@@ -1328,12 +1342,12 @@ class CommonDBTM extends CommonGLPI
                 }
             }
 
-            // Auto set date_creation if exsist
+            // Auto set date_creation if exist
             if (isset($table_fields['date_creation']) && !isset($this->input['date_creation'])) {
                 $this->fields['date_creation'] = $_SESSION["glpi_currenttime"];
             }
 
-            // Auto set date_mod if exsist
+            // Auto set date_mod if exist
             if (isset($table_fields['date_mod']) && !isset($this->input['date_mod'])) {
                 $this->fields['date_mod'] = $_SESSION["glpi_currenttime"];
             }
@@ -1380,8 +1394,9 @@ class CommonDBTM extends CommonGLPI
                     if (
                         Infocom::canApplyOn($this)
                         && isset($this->input['states_id'])
-                            && (!isset($this->input['is_template'])
-                                || !$this->input['is_template'])
+                        && (!isset($this->input['is_template'])
+                            || !$this->input['is_template'])
+                        && !($this->input['clone'] ?? false)
                     ) {
                         //Check if we have to automatically fill dates
                         Infocom::manageDateOnStatusChange($this);
@@ -1849,10 +1864,7 @@ class CommonDBTM extends CommonGLPI
             && (!isset($this->input['is_dynamic']) || $this->input['is_dynamic'] == false)
         ) {
             $fields = array_values($this->updates);
-            $idx = array_search('date_mod', $fields);
-            if ($idx !== false) {
-                unset($fields[$idx]);
-            }
+            $fields = array_filter($fields, fn($f) => $f !== 'date_mod');
             $stmt = $DB->prepare(
                 $DB->buildInsert(
                     $lockedfield->getTable(),
@@ -2899,7 +2911,7 @@ class CommonDBTM extends CommonGLPI
      *
      * @return boolean
      **/
-    public function can($ID, $right, array &$input = null)
+    public function can($ID, $right, ?array &$input = null)
     {
         if (Session::isInventory()) {
             return true;
@@ -3031,7 +3043,7 @@ class CommonDBTM extends CommonGLPI
      *
      * @return void
      **/
-    public function check($ID, $right, array &$input = null)
+    public function check($ID, $right, ?array &$input = null)
     {
 
        // Check item exists
@@ -3804,7 +3816,7 @@ class CommonDBTM extends CommonGLPI
 
         $type = $this->getType();
 
-        if (isset($options[$type])) {
+        if (isset($options[$type]) && !defined('TU_USER')) {
             return $options[$type];
         }
 
@@ -3978,7 +3990,7 @@ class CommonDBTM extends CommonGLPI
         array &$actions,
         $itemtype,
         $is_deleted = false,
-        CommonDBTM $checkitem = null
+        ?CommonDBTM $checkitem = null
     ) {
     }
 
@@ -4054,6 +4066,13 @@ class CommonDBTM extends CommonGLPI
             if ($ic->getFromDBforDevice($this->getType(), $this->fields['id'])) {
                 $excluded[] = 'Infocom:activate';
             }
+        }
+
+        if (
+            Toolbox::hasTrait(static::class, Clonable::class)
+            && $this->isTemplate()
+        ) {
+            $excluded[] = '*:clone';
         }
 
         return $excluded;
@@ -4526,10 +4545,12 @@ class CommonDBTM extends CommonGLPI
 
        //Get all checks for this itemtype and this entity
         if (in_array(get_class($this), $CFG_GLPI["unicity_types"])) {
-           // Get input entities if set / else get object one
-            if (isset($this->input['entities_id'])) {
+            // Get input entities if set / else get object one
+            if ($this instanceof User) {
+                $entities_id = 0; // Exception: user does not belong to an entity
+            } elseif (isset($this->input['entities_id'])) {
                 $entities_id = $this->input['entities_id'];
-            } else if (isset($this->fields['entities_id'])) {
+            } elseif (isset($this->fields['entities_id'])) {
                 $entities_id = $this->fields['entities_id'];
             } else {
                 $entities_id = 0;
@@ -4668,7 +4689,7 @@ class CommonDBTM extends CommonGLPI
 
         $ok = false;
         if (is_array($crit) && (count($crit) > 0)) {
-            $crit['FIELDS'] = [$this::getTable() => 'id'];
+            $crit['FIELDS'] = [$this::getTable() => $this::getIndexName()];
             $ok = true;
             $iterator = $DB->request($this->getTable(), $crit);
             foreach ($iterator as $row) {
@@ -4722,7 +4743,7 @@ class CommonDBTM extends CommonGLPI
             case '_virtual_datacenter_position':
                 $static = new static();
                 if (method_exists($static, 'getDcBreadcrumbSpecificValueToDisplay')) {
-                    //FIXME phpstan-ignore-next-line
+                    /** @var class-string $static */
                     return $static::getDcBreadcrumbSpecificValueToDisplay($values['id']);
                 }
         }

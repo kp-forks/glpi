@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -36,6 +36,7 @@
 use Glpi\Application\ErrorHandler;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\Clonable;
+use Glpi\Toolbox\ArrayNormalizer;
 use Glpi\Toolbox\Sanitizer;
 
 /**
@@ -816,7 +817,7 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
      *
      * @return array
      */
-    public function getMine(string $itemtype = null, bool $inverse = false, bool $enable_partial_warnings = true): array
+    public function getMine(?string $itemtype = null, bool $inverse = false, bool $enable_partial_warnings = true): array
     {
         /** @var \DBmysql $DB */
         global $DB;
@@ -937,7 +938,7 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
      *
      * @return void
      */
-    public function displayMine(string $itemtype = null, bool $inverse = false, bool $enable_partial_warnings = true)
+    public function displayMine(?string $itemtype = null, bool $inverse = false, bool $enable_partial_warnings = true)
     {
         TemplateRenderer::getInstance()->display('layout/parts/saved_searches_list.html.twig', [
             'active'         => $_SESSION['glpi_loaded_savedsearch'] ?? "",
@@ -959,8 +960,11 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
             $user               = new User();
             $personalorderfield = $this->getPersonalOrderField();
 
-            $user->update(['id'                 => Session::getLoginUserID(),
-                $personalorderfield  => exportArrayToDB($items)
+            $user->update([
+                'id'                 => Session::getLoginUserID(),
+                $personalorderfield  => exportArrayToDB(
+                    ArrayNormalizer::normalizeValues($items, 'intval')
+                )
             ]);
             return true;
         }

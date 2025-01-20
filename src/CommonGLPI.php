@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -144,7 +144,7 @@ class CommonGLPI implements CommonGLPIInterface
      *
      * @return boolean
      **/
-    public function can($ID, $right, array &$input = null)
+    public function can($ID, $right, ?array &$input = null)
     {
         switch ($right) {
             case READ:
@@ -1299,7 +1299,7 @@ class CommonGLPI implements CommonGLPIInterface
             } else {
                 foreach ($options as $option_group) {
                     foreach ($option_group as $option_name => $attributs) {
-                        if (isset($input[$option_name]) && ($_GET[$option_name] == 'on')) {
+                        if (isset($input[$option_name]) && ($input[$option_name] == 'on')) {
                             $display_options[$option_name] = true;
                         } else {
                             $display_options[$option_name] = false;
@@ -1311,9 +1311,9 @@ class CommonGLPI implements CommonGLPIInterface
             if ($uid = Session::getLoginUserID()) {
                 $user = new User();
                 if ($user->getFromDB($uid)) {
-                    $user->update(['id' => $uid,
-                        'display_options'
-                                        => exportArrayToDB($_SESSION['glpi_display_options'])
+                    $user->update([
+                        'id' => $uid,
+                        'display_options' => Sanitizer::sanitize(exportArrayToDB($_SESSION['glpi_display_options']))
                     ]);
                 }
             }

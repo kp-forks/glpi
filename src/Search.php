@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -38,6 +38,7 @@ use Glpi\RichText\RichText;
 use Glpi\Socket;
 use Glpi\Toolbox\DataExport;
 use Glpi\Toolbox\Sanitizer;
+use Glpi\Toolbox\URL;
 
 /**
  * Search Class
@@ -256,7 +257,7 @@ class Search
         self::displayData($data);
 
         if ($data['data']['totalcount'] > 0) {
-            $target = $data['search']['target'];
+            $target = URL::sanitizeURL($data['search']['target']);
             $criteria = $data['search']['criteria'];
             array_pop($criteria);
             array_pop($criteria);
@@ -1278,20 +1279,20 @@ class Search
                 if (isset($criterion['link'])) {
                     switch ($criterion['link']) {
                         case "AND":
-                            $LINK       = " OR ";
+                            $LINK       = ($criterion['searchtype'] == 'notcontains') ? ' AND ' : ' OR ';
                             $globallink = " AND ";
                             break;
                         case "AND NOT":
-                            $LINK       = " AND ";
+                            $LINK       = ($criterion['searchtype'] == 'notcontains') ? ' OR ' : ' AND ';
                             $NOT        = 1;
                             $globallink = " AND ";
                             break;
                         case "OR":
-                            $LINK       = " OR ";
+                            $LINK       = ($criterion['searchtype'] == 'notcontains') ? ' AND ' : ' OR ';
                             $globallink = " OR ";
                             break;
                         case "OR NOT":
-                            $LINK       = " AND ";
+                            $LINK       = ($criterion['searchtype'] == 'notcontains') ? ' OR ' : ' AND ';
                             $NOT        = 1;
                             $globallink = " OR ";
                             break;
@@ -1809,10 +1810,13 @@ class Search
             }
         }
 
+        $search['target'] = URL::sanitizeURL($search['target']);
         $prehref = $search['target'] . (strpos($search['target'], "?") !== false ? "&" : "?");
         $href    = $prehref . $parameters;
 
         Session::initNavigateListItems($data['itemtype'], '', $href);
+
+        $count = $data['data']['totalcount'] ?? 0;
 
         TemplateRenderer::getInstance()->display('components/search/display_data.html.twig', [
             'data'                => $data,
@@ -1823,7 +1827,7 @@ class Search
             'sort'                => $search['sort'] ?? [],
             'start'               => $search['start'] ?? 0,
             'limit'               => $_SESSION['glpilist_limit'],
-            'count'               => $data['data']['totalcount'] ?? 0,
+            'count'               => $count,
             'item'                => $item,
             'itemtype'            => $itemtype,
             'href'                => $href,
@@ -1835,8 +1839,9 @@ class Search
                                     || count(MassiveAction::getAllMassiveActions($item, $is_deleted))
                                   ),
             'massiveactionparams' => $data['search']['massiveactionparams'] + [
-                'is_deleted' => $is_deleted,
-                'container'  => "massform$itemtype",
+                'num_displayed' => min($_SESSION['glpilist_limit'], $count),
+                'is_deleted'    => $is_deleted,
+                'container'     => "massform$itemtype",
             ],
             'can_config'          => Session::haveRightsOr('search_config', [
                 DisplayPreference::PERSONAL,
@@ -2573,6 +2578,7 @@ class Search
         foreach ($params as $key => $val) {
             $p[$key] = $val;
         }
+        $p['target'] = URL::sanitizeURL($p['target']);
 
        // Itemtype name used in JS function names, etc
         $normalized_itemtype = strtolower(str_replace('\\', '', $itemtype));
@@ -8361,6 +8367,28 @@ HTML;
                                                                   'NEWTABLE'
                                                               )
                 ];
+
+                self::$search[$itemtype][141]['table']         = 'glpi_changes';
+                self::$search[$itemtype][141]['field']         = 'id';
+                self::$search[$itemtype][141]['datatype']      = 'count';
+                self::$search[$itemtype][141]['name']          = _x('quantity', 'Number of changes');
+                self::$search[$itemtype][141]['forcegroupby']  = true;
+                self::$search[$itemtype][141]['usehaving']     = true;
+                self::$search[$itemtype][141]['massiveaction'] = false;
+                self::$search[$itemtype][141]['joinparams']    = ['beforejoin'
+                => ['table'
+                    => 'glpi_changes_items',
+                    'joinparams'
+                        => ['jointype'
+                        => 'itemtype_item'
+                        ]
+                ],
+                    'condition'
+                    => getEntitiesRestrictRequest(
+                        'AND',
+                        'NEWTABLE'
+                    )
+                ];
             }
 
             $fn_append_options = static function ($new_options) use ($itemtype) {
@@ -9045,8 +9073,10 @@ HTML;
                 break;
 
             case self::NAMES_OUTPUT:
-                header("Content-disposition: filename=glpi.txt");
-                header('Content-type: file/txt');
+                if (!defined('TU_USER')) {
+                    header("Content-disposition: filename=glpi.txt");
+                    header('Content-type: file/txt');
+                }
                 break;
 
             default:

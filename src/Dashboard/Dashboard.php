@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -351,7 +351,7 @@ class Dashboard extends \CommonDBTM
     /**
      * Save filter in DB for the  curent dashboard
      *
-     * @param string $filter filter parameters in JSON format
+     * @param string $filters filter parameters in JSON format
      *
      * @return void
      */
@@ -365,8 +365,6 @@ class Dashboard extends \CommonDBTM
 
     /**
      * Save filter in DB for the  curent dashboard
-     *
-     * @param string $filter filter parameters in JSON format
      *
      * @return string
      */

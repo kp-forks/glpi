@@ -7,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2025 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -36,6 +36,7 @@
 use Glpi\Application\ErrorHandler;
 use Glpi\Plugin\Hooks;
 use Glpi\Socket;
+use Glpi\Toolbox\URL;
 
 /**
  * Transfer engine.
@@ -3895,7 +3896,8 @@ class Transfer extends CommonDBTM
         if ($edit_form) {
             $this->showFormHeader($options);
         } else {
-            echo "<form method='post' name=form action='" . $options['target'] . "'>";
+            $target = URL::sanitizeURL($options['target']);
+            echo "<form method='post' name=form action='" . $target . "'>";
             echo "<div class='center' id='tabsbody' >";
             echo "<table class='tab_cadre_fixe'>";
 
@@ -4179,11 +4181,12 @@ class Transfer extends CommonDBTM
                         continue;
                     }
                     $table = $itemtype::getTable();
-
+                    $name_field = $item->getNameField();
+                    $table_name_field = sprintf('%1$s.%2$s', $table, $name_field);
                     $iterator = $DB->request([
                         'SELECT'    => [
                             "$table.id",
-                            "$table.name",
+                            $table_name_field,
                             'entities.completename AS locname',
                             'entities.id AS entID'
                         ],
@@ -4197,7 +4200,7 @@ class Transfer extends CommonDBTM
                             ]
                         ],
                         'WHERE'     => ["$table.id" => $tab],
-                        'ORDERBY'   => ['locname', "$table.name"]
+                        'ORDERBY'   => ['locname', $table_name_field]
                     ]);
                     $entID = -1;
 
@@ -4211,7 +4214,7 @@ class Transfer extends CommonDBTM
                                 $entID = $data['entID'];
                                 echo "<span class='b spaced'>" . $data['locname'] . "</span><br>";
                             }
-                                echo ($data['name'] ? $data['name'] : "(" . $data['id'] . ")") . "<br>";
+                                echo ($data[$name_field] ? $data[$name_field] : "(" . $data['id'] . ")") . "<br>";
                         }
                     }
                 }
